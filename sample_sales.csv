@@ -1,0 +1,21 @@
+order_date,region,category,sub_category,sales,profit,quantity
+2023-01-05,East,Furniture,Chairs,1200.50,150.20,3
+2023-01-12,West,Furniture,Tables,890.00,-45.30,2
+2023-01-18,East,Technology,Phones,2100.75,410.00,5
+2023-02-02,South,Furniture,Bookcases,540.20,-80.10,1
+2023-02-14,West,Office Supplies,Binders,120.00,35.00,10
+2023-02-20,East,Furniture,Chairs,980.00,-120.00,4
+2023-03-01,South,Technology,Phones,1750.00,300.50,3
+2023-03-09,West,Furniture,Tables,,-200.00,2
+2023-03-15,East,Furniture,Bookcases,610.00,-95.40,2
+2023-04-02,North,Office Supplies,Paper,80.50,20.10,15
+2023-04-11,East,Furniture,Chairs,1300.00,-150.00,5
+2023-04-19,South,Technology,Phones,2200.00,450.00,4
+2023-05-03,West,Furniture,Tables,720.00,-110.00,3
+2023-05-15,North,Furniture,Bookcases,,-70.00,1
+2023-05-22,East,Furniture,Chairs,1100.00,-140.00,4
+2023-06-01,South,Office Supplies,Binders,95.00,25.00,8
+2023-06-10,West,Furniture,Chairs,1050.00,-130.00,4
+2023-06-18,East,Technology,Phones,1900.00,380.00,4
+2023-07-05,North,Furniture,Tables,650.00,-100.00,2
+2023-07-14,South,Furniture,Bookcases,590.00,-85.00,2
