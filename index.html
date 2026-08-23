@@ -7,7 +7,9 @@
   :root {
     --bg: #0b0e11;
     --panel: #12161b;
+    --panel-hover: #171c22;
     --line: #22282f;
+    --line-bright: #2e353d;
     --text: #e6e9ec;
     --muted: #8a929b;
     --accent: #3ddc97;
@@ -19,12 +21,22 @@
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    background: var(--bg);
+    background:
+      radial-gradient(circle at 20% 0%, rgba(61,220,151,0.05), transparent 40%),
+      var(--bg);
     color: var(--text);
     font-family: -apple-system, "Segoe UI", sans-serif;
-    padding: 40px 24px 80px;
+    padding: 40px 24px 100px;
   }
-  .wrap { max-width: 760px; margin: 0 auto; }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .panel {
+    animation: fadeInUp 0.35s ease both;
+  }
 
   .brand {
     display: flex;
@@ -35,11 +47,16 @@
   .brand .dot {
     width: 9px; height: 9px; border-radius: 50%;
     background: var(--accent);
-    box-shadow: 0 0 8px var(--accent);
+    box-shadow: 0 0 10px var(--accent);
+    animation: pulseDot 2.4s ease-in-out infinite;
+  }
+  @keyframes pulseDot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.85); }
   }
   .brand h1 {
-    font-size: 20px;
-    font-weight: 600;
+    font-size: 21px;
+    font-weight: 650;
     margin: 0;
     letter-spacing: -0.02em;
   }
@@ -48,34 +65,36 @@
   .panel {
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
+    transition: border-color 0.2s;
   }
 
-  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+  label { display: block; font-size: 11.5px; color: var(--muted); margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
 
   .dropzone {
     border: 1.5px dashed var(--line);
-    border-radius: 8px;
-    padding: 22px;
+    border-radius: 9px;
+    padding: 24px;
     text-align: center;
     color: var(--muted);
     font-size: 13px;
     cursor: pointer;
-    transition: border-color 0.15s, color 0.15s;
-  }
-  .dropzone:hover, .dropzone.drag { border-color: var(--accent); color: var(--text); }
-  .dropzone input { display: none; }
-  .dropzone .filename { color: var(--accent); font-weight: 500; }
-
-  textarea, .dropzone {
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
     width: 100%;
   }
+  .dropzone:hover, .dropzone:focus-visible { border-color: var(--accent); color: var(--text); background: rgba(61,220,151,0.03); }
+  .dropzone.drag { border-color: var(--accent); background: rgba(61,220,151,0.06); transform: scale(1.005); }
+  .dropzone input { display: none; }
+  .dropzone .filename { color: var(--accent); font-weight: 600; }
+  .dropzone .icon { display: block; font-size: 20px; margin-bottom: 6px; opacity: 0.6; }
+
   textarea {
+    width: 100%;
     background: #0e1216;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: 9px;
     color: var(--text);
     font-family: inherit;
     font-size: 14px;
@@ -83,24 +102,36 @@
     resize: vertical;
     min-height: 54px;
     margin-top: 12px;
+    transition: border-color 0.15s, box-shadow 0.15s;
   }
-  textarea:focus, .dropzone:focus-visible { outline: none; border-color: var(--accent); }
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(61,220,151,0.12);
+  }
 
+  .btn-row { display: flex; gap: 10px; margin-top: 16px; }
   button.run {
-    margin-top: 16px;
-    width: 100%;
+    flex: 1;
     background: var(--accent);
     color: #06120c;
     border: none;
-    border-radius: 8px;
+    border-radius: 9px;
     padding: 12px;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 650;
     cursor: pointer;
-    transition: opacity 0.15s;
+    transition: transform 0.12s ease, opacity 0.15s, box-shadow 0.15s;
   }
-  button.run:hover { opacity: 0.88; }
+  button.run:hover:not(:disabled) { opacity: 0.92; box-shadow: 0 4px 16px rgba(61,220,151,0.18); }
+  button.run:active:not(:disabled) { transform: scale(0.97); }
   button.run:disabled { background: var(--line); color: var(--muted); cursor: not-allowed; }
+  button.run.secondary {
+    background: transparent;
+    border: 1.5px solid var(--line);
+    color: var(--text);
+  }
+  button.run.secondary:hover:not(:disabled) { border-color: var(--accent); opacity: 1; box-shadow: none; }
 
   .status-line {
     display: flex; align-items: center; gap: 8px;
@@ -108,61 +139,133 @@
     margin: 14px 0 0;
   }
   .spinner {
-    width: 12px; height: 12px;
+    width: 13px; height: 13px;
     border: 2px solid var(--line);
     border-top-color: var(--accent);
     border-radius: 50%;
     animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  .progress-track {
+    width: 100%;
+    height: 4px;
+    background: var(--line);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 12px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.4s ease;
+  }
 
   .section-title {
     font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.07em;
     color: var(--muted);
     margin: 0 0 12px;
+    font-weight: 700;
   }
 
   .plan-item {
     display: flex; gap: 10px;
     font-size: 13px;
-    padding: 6px 0;
+    padding: 7px 0;
     color: var(--muted);
+    border-bottom: 1px solid rgba(255,255,255,0.03);
   }
+  .plan-item:last-child { border-bottom: none; }
   .plan-item .n {
     color: var(--accent);
     font-family: ui-monospace, "SF Mono", Consolas, monospace;
     flex-shrink: 0;
+    font-weight: 700;
   }
+
+  .chart-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .chart-card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+    cursor: zoom-in;
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+  .chart-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  }
+  .chart-card img { width: 100%; display: block; }
+  .chart-card .chart-caption {
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--panel);
+    border-top: 1px solid var(--line);
+  }
+
+  .lightbox {
+    position: fixed; inset: 0;
+    background: rgba(5,7,9,0.88);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 100;
+    cursor: zoom-out;
+    padding: 40px;
+    animation: fadeInUp 0.2s ease both;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img { max-width: 100%; max-height: 100%; border-radius: 10px; background: #fff; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
 
   .step {
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: 10px;
     margin-bottom: 10px;
     overflow: hidden;
+    transition: border-color 0.15s;
   }
   .step-head {
     display: flex; align-items: center; gap: 10px;
-    padding: 12px 14px;
+    padding: 13px 14px;
     cursor: pointer;
     font-size: 13px;
+    user-select: none;
   }
-  .step-head:hover { background: #171b20; }
+  .step-head:hover { background: var(--panel-hover); }
   .badge {
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.04em;
-    padding: 2px 7px;
-    border-radius: 4px;
+    padding: 3px 8px;
+    border-radius: 5px;
     flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
   }
   .badge.ok { background: var(--accent-dim); color: var(--accent); }
   .badge.fail { background: var(--error-dim); color: var(--error); }
   .step-desc { flex: 1; }
   .attempts { color: var(--muted); font-size: 11px; }
+  .step-output-wrap {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.25s ease;
+  }
+  .step.open .step-output-wrap { grid-template-rows: 1fr; }
+  .step-output-inner { overflow: hidden; }
   .step-output {
-    display: none;
     background: #0a0d10;
     border-top: 1px solid var(--line);
     padding: 12px 14px;
@@ -173,16 +276,33 @@
     max-height: 260px;
     overflow-y: auto;
   }
-  .step.open .step-output { display: block; }
+  .step-chart {
+    max-width: 100%;
+    border-radius: 6px;
+    margin-top: 10px;
+    border: 1px solid var(--line);
+    cursor: zoom-in;
+    transition: opacity 0.15s;
+  }
+  .step-chart:hover { opacity: 0.9; }
+  .chev { color: var(--muted); transition: transform 0.2s; font-size: 11px; flex-shrink: 0; }
   .step.open .chev { transform: rotate(90deg); }
-  .chev { color: var(--muted); transition: transform 0.15s; font-size: 11px; }
 
   .report {
-    font-size: 14px;
-    line-height: 1.65;
+    font-size: 14.5px;
+    line-height: 1.7;
     color: var(--text);
     white-space: pre-wrap;
   }
+
+  .summary-stats {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 14px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .summary-stats b { color: var(--accent); font-size: 16px; display: block; font-weight: 700; }
 
   .error-panel {
     border-color: var(--error-dim);
@@ -193,17 +313,19 @@
     font-family: ui-monospace, "SF Mono", Consolas, monospace;
   }
 
-  .hint { color: var(--muted); font-size: 12px; margin-top: 6px; }
+  .hint { color: var(--muted); font-size: 12px; margin-top: 8px; text-align: center; }
+
   .live-log {
     font-family: ui-monospace, "SF Mono", Consolas, monospace;
     font-size: 12px;
     color: var(--muted);
+    max-height: 200px;
+    overflow-y: auto;
   }
-  .live-log .line { padding: 3px 0; display: flex; gap: 8px; }
+  .live-log .line { padding: 4px 0; display: flex; gap: 8px; align-items: baseline; animation: fadeInUp 0.2s ease both; }
   .live-log .line.active { color: var(--amber); }
   .live-log .line.ok { color: var(--accent); }
   .live-log .line.fail { color: var(--error); }
-
 </style>
 </head>
 <body>
@@ -215,6 +337,7 @@
   <div class="panel">
     <label for="fileInput">Dataset</label>
     <div class="dropzone" id="dropzone" tabindex="0">
+      <span class="icon">&#9729;</span>
       <span id="dropzoneText">Click to choose a CSV, or drag one here</span>
       <input type="file" id="fileInput" accept=".csv">
     </div>
@@ -222,10 +345,16 @@
     <label for="question" style="margin-top:16px;">Question</label>
     <textarea id="question" placeholder="e.g. Why is the Furniture category losing money?"></textarea>
 
-    <button class="run" id="runBtn">Run analysis</button>
+    <div class="btn-row">
+      <button class="run" id="runBtn">Run analysis</button>
+      <button class="run secondary" id="summaryBtn">Quick summary</button>
+    </div>
     <div class="status-line" id="statusLine" style="display:none;">
       <div class="spinner"></div>
       <span id="statusText">Working...</span>
+    </div>
+    <div class="progress-track" id="progressTrack" style="display:none;">
+      <div class="progress-fill" id="progressFill"></div>
     </div>
     <p class="hint">Backend must be running at http://localhost:8000</p>
   </div>
@@ -234,17 +363,26 @@
 
 </div>
 
+<div class="lightbox" id="lightbox">
+  <img id="lightboxImg" src="" alt="Enlarged chart">
+</div>
+
 <script>
-const API_URL = "http://localhost:8000/analyze-stream";
+const BASE_URL = "http://localhost:8000";
 
 const fileInput = document.getElementById("fileInput");
 const dropzone = document.getElementById("dropzone");
 const dropzoneText = document.getElementById("dropzoneText");
 const questionInput = document.getElementById("question");
 const runBtn = document.getElementById("runBtn");
+const summaryBtn = document.getElementById("summaryBtn");
 const statusLine = document.getElementById("statusLine");
 const statusText = document.getElementById("statusText");
 const resultsDiv = document.getElementById("results");
+const progressTrack = document.getElementById("progressTrack");
+const progressFill = document.getElementById("progressFill");
+const lightbox = document.getElementById("lightbox");
+const lightboxImg = document.getElementById("lightboxImg");
 
 let selectedFile = null;
 
@@ -271,11 +409,33 @@ function setStatus(text) {
   statusText.textContent = text || "";
 }
 
+function setProgress(pct) {
+  if (pct === null) {
+    progressTrack.style.display = "none";
+    return;
+  }
+  progressTrack.style.display = "block";
+  progressFill.style.width = pct + "%";
+}
+
 function escapeHtml(str) {
   const div = document.createElement("div");
   div.textContent = str;
   return div.innerHTML;
 }
+
+lightbox.addEventListener("click", () => lightbox.classList.remove("open"));
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") lightbox.classList.remove("open"); });
+
+resultsDiv.addEventListener("click", (e) => {
+  if (e.target.classList.contains("step-chart") || e.target.closest(".chart-card")) {
+    const img = e.target.tagName === "IMG" ? e.target : e.target.querySelector("img");
+    if (img && img.src.startsWith("data:image")) {
+      lightboxImg.src = img.src;
+      lightbox.classList.add("open");
+    }
+  }
+});
 
 runBtn.addEventListener("click", async () => {
   const question = questionInput.value.trim();
@@ -290,11 +450,14 @@ runBtn.addEventListener("click", async () => {
   }
 
   runBtn.disabled = true;
+  summaryBtn.disabled = true;
   resultsDiv.innerHTML =
     '<div class="panel"><p class="section-title">Live progress</p><div class="live-log" id="liveLog"></div></div>';
   const liveLog = document.getElementById("liveLog");
+  setProgress(0);
 
   const state = { plan: [], steps: [], report: null };
+  let totalSteps = 0;
 
   function logLine(text, cls) {
     const div = document.createElement("div");
@@ -309,7 +472,7 @@ runBtn.addEventListener("click", async () => {
   formData.append("question", question);
 
   try {
-    const resp = await fetch(API_URL, { method: "POST", body: formData });
+    const resp = await fetch(BASE_URL + "/analyze-stream", { method: "POST", body: formData });
     if (!resp.ok) {
       const errText = await resp.text();
       throw new Error(errText || resp.statusText);
@@ -336,8 +499,10 @@ runBtn.addEventListener("click", async () => {
     }
   } catch (err) {
     logLine("Error: " + err.message, "fail");
+    setProgress(null);
   } finally {
     runBtn.disabled = false;
+    summaryBtn.disabled = false;
   }
 
   function handleEvent(event) {
@@ -345,6 +510,7 @@ runBtn.addEventListener("click", async () => {
       logLine(event.message);
     } else if (event.type === "plan") {
       state.plan = event.plan;
+      totalSteps = event.plan.length;
       logLine("Plan ready (" + event.plan.length + " steps)", "ok");
     } else if (event.type === "step_start") {
       logLine("Step " + event.step_num + ": " + event.description + " ...", "active");
@@ -355,15 +521,58 @@ runBtn.addEventListener("click", async () => {
         " (" + event.attempts + " attempt" + (event.attempts > 1 ? "s" : "") + ")",
         event.success ? "ok" : "fail"
       );
+      if (totalSteps > 0) setProgress(Math.round((state.steps.length / totalSteps) * 90));
     } else if (event.type === "report") {
       state.report = event.report;
       logLine("Report ready", "ok");
+      setProgress(100);
       renderFinal(state);
     } else if (event.type === "error") {
       logLine("Error: " + event.message, "fail");
     } else if (event.type === "done") {
       logLine("Done.", "ok");
+      setTimeout(() => setProgress(null), 600);
     }
+  }
+});
+
+summaryBtn.addEventListener("click", async () => {
+  if (!selectedFile) {
+    resultsDiv.innerHTML = '<div class="panel error-panel">Choose a CSV file first.</div>';
+    return;
+  }
+
+  runBtn.disabled = true;
+  summaryBtn.disabled = true;
+  setStatus("Reading dataset and generating a quick overview...");
+  resultsDiv.innerHTML = "";
+
+  const formData = new FormData();
+  formData.append("file", selectedFile);
+
+  try {
+    const resp = await fetch(BASE_URL + "/summarize", { method: "POST", body: formData });
+    if (!resp.ok) {
+      const errBody = await resp.json().catch(() => ({ detail: resp.statusText }));
+      throw new Error(errBody.detail || "Request failed");
+    }
+    const data = await resp.json();
+
+    resultsDiv.innerHTML =
+      '<div class="panel">' +
+        '<p class="section-title">Quick Summary</p>' +
+        '<div class="summary-stats">' +
+          '<span><b>' + data.row_count + '</b>rows</span>' +
+          '<span><b>' + data.column_count + '</b>columns</span>' +
+        '</div>' +
+        '<div class="report">' + escapeHtml(data.summary) + '</div>' +
+      '</div>';
+  } catch (err) {
+    resultsDiv.innerHTML = '<div class="panel error-panel">Could not summarize the dataset.\n\n' + escapeHtml(err.message) + '</div>';
+  } finally {
+    setStatus(null);
+    runBtn.disabled = false;
+    summaryBtn.disabled = false;
   }
 });
 
@@ -376,19 +585,34 @@ function renderFinal(data) {
   });
   html += "</div>";
 
+  const chartsWithData = data.steps.filter((s) => s.chart_base64);
+  if (chartsWithData.length > 0) {
+    html += '<div class="panel"><p class="section-title">Charts</p><div class="chart-gallery">';
+    chartsWithData.forEach((s) => {
+      html +=
+        '<div class="chart-card">' +
+          '<img src="data:image/png;base64,' + s.chart_base64 + '" alt="Chart for step ' + s.step_num + '" />' +
+          '<div class="chart-caption">Step ' + s.step_num + ': ' + escapeHtml(s.description) + "</div>" +
+        "</div>";
+    });
+    html += "</div></div>";
+  }
+
   html += '<div class="panel"><p class="section-title">Steps</p>';
   data.steps.forEach((s) => {
     const badgeClass = s.success ? "ok" : "fail";
     const badgeText = s.success ? "OK" : "FAILED";
     html +=
       '<div class="step" data-idx="' + s.step_num + '">' +
-        '<div class="step-head" onclick="this.parentElement.classList.toggle(\'open\')">' +
+        '<div class="step-head" onclick="this.parentElement.classList.toggle(' + "'open'" + ')">' +
           '<span class="badge ' + badgeClass + '">' + badgeText + "</span>" +
           '<span class="step-desc">Step ' + s.step_num + ": " + escapeHtml(s.description) + "</span>" +
           '<span class="attempts">' + s.attempts + " attempt" + (s.attempts > 1 ? "s" : "") + "</span>" +
           '<span class="chev">&#9656;</span>' +
         "</div>" +
-        '<div class="step-output">' + escapeHtml(s.output) + "</div>" +
+        '<div class="step-output-wrap"><div class="step-output-inner"><div class="step-output">' + escapeHtml(s.output) +
+          (s.chart_base64 ? '<img class="step-chart" src="data:image/png;base64,' + s.chart_base64 + '" alt="Chart for step ' + s.step_num + '" />' : "") +
+          "</div></div></div>" +
       "</div>";
   });
   html += "</div>";

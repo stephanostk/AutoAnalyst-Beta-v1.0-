@@ -60,6 +60,7 @@ def _generate_report_safely(report_prompt: str, system_prompt: str, max_attempts
 
 app = FastAPI(title="AutoAnalyst API")
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # local dev only
@@ -74,6 +75,7 @@ class StepResult(BaseModel):
     success: bool
     output: str
     attempts: int
+    chart_base64: str | None = None
 
 
 class AnalysisResponse(BaseModel):
@@ -162,7 +164,7 @@ def _sse_event(event_type: str, data: dict) -> str:
     return payload + "\n"
 
 
-async def _stream_analysis(tmp_path: str, question: str):
+async def _stream_analysis(tmp_path: str, question: str, dataset_name: str):
     """
     Generator that yields progress events as the agent works, then cleans
     up the temp file when done (success or failure).
@@ -201,6 +203,7 @@ async def _stream_analysis(tmp_path: str, question: str):
                 "success": record["success"],
                 "output": record["output"],
                 "attempts": record["attempts"],
+                "chart_base64": record.get("chart_base64"),
             })
 
         yield _sse_event("status", {"message": "Writing the final report..."})
@@ -229,6 +232,60 @@ Write the report now."""
         os.unlink(tmp_path)
 
 
+
+
+
+SUMMARY_SYSTEM_PROMPT = """You are a data analyst agent. Given a dataset's \
+schema and basic statistics, write a short, plain-English overview (3-5 \
+sentences) covering: what the dataset appears to contain, its size, any \
+notable columns, and any data quality issues (missing values, unusual \
+types). Do not answer any specific business question — just describe \
+what is here. Write for someone who has not seen the data yet."""
+
+
+@app.post("/summarize")
+async def summarize(file: UploadFile):
+    """
+    Quick endpoint: no question needed. Returns a fast plain-English
+    overview of the dataset's shape, columns, and data quality — without
+    running the full multi-step agent loop.
+    """
+    if not file.filename.endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Only CSV files are supported right now.")
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp:
+        content_bytes = await file.read()
+        tmp.write(content_bytes)
+        tmp_path = tmp.name
+
+    try:
+        df = load_and_describe(tmp_path)
+        schema_text = schema_summary(df)
+
+        stats_text = df.describe(include="all").to_string()
+
+        prompt = f"""Dataset schema:
+{schema_text}
+
+Basic statistics:
+{stats_text}
+
+Write the overview now."""
+
+        summary = call_llm(prompt, system=SUMMARY_SYSTEM_PROMPT, max_tokens=512)
+
+        return {
+            "filename": file.filename,
+            "row_count": len(df),
+            "column_count": len(df.columns),
+            "columns": list(df.columns),
+            "summary": summary,
+        }
+    except Exception:
+        raise HTTPException(status_code=500, detail=f"Could not summarize dataset:\n{traceback.format_exc()}")
+    finally:
+        os.unlink(tmp_path)
+
 @app.post("/analyze-stream")
 async def analyze_stream(file: UploadFile, question: str = Form(...)):
     """
@@ -244,6 +301,6 @@ async def analyze_stream(file: UploadFile, question: str = Form(...)):
         tmp_path = tmp.name
 
     return StreamingResponse(
-        _stream_analysis(tmp_path, question),
+        _stream_analysis(tmp_path, question, file.filename),
         media_type="application/x-ndjson",
     )

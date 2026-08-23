@@ -16,6 +16,8 @@ Two fixes over step5_agent_loop.py:
 """
 
 import io
+import os
+import base64
 import contextlib
 import traceback
 
@@ -100,6 +102,23 @@ Fix the code now."""
     return strip_fences(raw)
 
 
+
+CHART_FILENAME = "output_chart.png"
+
+
+def _capture_chart_if_present() -> str | None:
+    """
+    If the executed code called plt.savefig('output_chart.png'), read it,
+    base64-encode it so it can travel over JSON, and delete the file so
+    the next step doesn't accidentally reuse a stale chart.
+    """
+    if os.path.exists(CHART_FILENAME):
+        with open(CHART_FILENAME, "rb") as f:
+            chart_bytes = f.read()
+        os.remove(CHART_FILENAME)
+        return base64.b64encode(chart_bytes).decode("utf-8")
+    return None
+
 def execute_in_namespace(code: str, namespace: dict) -> dict:
     """
     Executes code in a SHARED, PERSISTENT namespace (mutated in place),
@@ -112,9 +131,11 @@ def execute_in_namespace(code: str, namespace: dict) -> dict:
             exec(code, namespace)
         result["success"] = True
         result["output"] = output_buffer.getvalue()
+        result["chart_base64"] = _capture_chart_if_present()
     except Exception:
         result["output"] = output_buffer.getvalue()
         result["error"] = traceback.format_exc()
+        result["chart_base64"] = None
     return result
 
 
@@ -129,7 +150,7 @@ def run_step_with_retries(schema_text, step_description, namespace, known_vars):
         if result["success"]:
             print("Result: SUCCESS")
             print(result["output"])
-            return {"description": step_description, "success": True, "output": result["output"], "attempts": attempt + 1}
+            return {"description": step_description, "success": True, "output": result["output"], "attempts": attempt + 1, "chart_base64": result.get("chart_base64")}
 
         print(f"Result: FAILED (attempt {attempt + 1})")
         print(result["error"][-500:])  # last part of traceback is usually most useful
@@ -137,7 +158,7 @@ def run_step_with_retries(schema_text, step_description, namespace, known_vars):
         attempt += 1
         if attempt > MAX_RETRIES:
             print(f"Giving up on this step after {attempt} attempts.")
-            return {"description": step_description, "success": False, "output": result["error"], "attempts": attempt}
+            return {"description": step_description, "success": False, "output": result["error"], "attempts": attempt, "chart_base64": None}
 
         print("Retrying with a fix...")
         code = fix_code(schema_text, step_description, code, result["error"], known_vars)
@@ -200,4 +221,3 @@ Write the report now."""
 
 if __name__ == "__main__":
     run_agent("sample_sales.csv", "Why is the Furniture category losing money?")
-    
